@@ -1,0 +1,246 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Système d'Authentification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .password-strength-bar {
+            transition: all 0.3s ease;
+        }
+        
+        .tooltip {
+            display: none;
+            position: absolute;
+            z-index: 1000;
+        }
+        
+        .tooltip.show {
+            display: block;
+        }
+        
+        .country-dropdown {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .country-option:hover {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Carte principale -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 animate-slide-in">
+            <!-- En-tête -->
+            <div class="text-center mb-8">
+                <div class="inline-block p-3 bg-blue-100 rounded-full mb-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Inscription</h1>
+                <p class="text-gray-600">Créez votre compte en quelques instants</p>
+            </div>
+
+            <!-- Messages d'erreur/succès Django -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-red-50 text-red-800 border border-red-200{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Formulaire -->
+            <form method="POST" action="{% url 'signup' %}" id="signup-form" novalidate>
+                {% csrf_token %}
+
+                <!-- Nom complet -->
+                <div class="mb-5">
+                    <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.full_name.label }}
+                    </label>
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Format: Nom Prénom, Nom_Prénom ou NomPrénom</p>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-5">
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.email.label }}
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Téléphone avec sélecteur de pays -->
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Numéro de téléphone
+                    </label>
+                    <div class="flex gap-2">
+                        <!-- Sélecteur de pays -->
+                        <div class="relative flex-shrink-0" style="width: 120px;">
+                            <button type="button" id="country-selector-btn" class="w-full px-3 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all flex items-center justify-between">
+                                <span id="selected-country" class="flex items-center text-sm">
+                                    <span class="mr-1">🇧🇯</span>
+                                    <span>+229</span>
+                                </span>
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            
+                            <!-- Dropdown des pays -->
+                            <div id="country-dropdown" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
+                                <div class="p-2">
+                                    <input type="text" id="country-search" placeholder="Rechercher..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                                </div>
+                                <div class="country-dropdown">
+                                    {% for country in countries %}
+                                    <div class="country-option px-4 py-2 cursor-pointer flex items-center text-sm" data-code="{{ country.code }}" data-flag="{{ country.flag }}">
+                                        <span class="mr-2">{{ country.flag }}</span>
+                                        <span class="flex-1">{{ country.name }}</span>
+                                        <span class="text-gray-500">{{ country.code }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Champ numéro -->
+                        <div class="flex-1">
+                            {{ form.phone_number }}
+                            {{ form.country_code }}
+                        </div>
+                    </div>
+                    {% if form.phone_number.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.phone_number.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Mot de passe avec indicateur de robustesse -->
+                <div class="mb-5 relative">
+                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.password.label }}
+                    </label>
+                    {{ form.password }}
+                    
+                    <!-- Barre de robustesse -->
+                    <div class="mt-2">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div id="strength-bar" class="password-strength-bar h-full w-0 bg-red-500 rounded-full"></div>
+                            </div>
+                            <span id="strength-text" class="text-xs font-medium text-gray-500">-</span>
+                        </div>
+                        
+                        <!-- Critères -->
+                        <div id="password-criteria" class="text-xs space-y-1 mt-2 p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <span id="criteria-length" class="text-gray-400">○</span>
+                                <span class="text-gray-600">Au moins 8 caractères</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="criteria-upper" class="text-gray-400">○</span>
+                                <span class="text-gray-600">Une majuscule</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="criteria-lower" class="text-gray-400">○</span>
+                                <span class="text-gray-600">Une minuscule</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="criteria-number" class="text-gray-400">○</span>
+                                <span class="text-gray-600">Un chiffre</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="criteria-special" class="text-gray-400">○</span>
+                                <span class="text-gray-600">Un caractère spécial</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if form.password.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Confirmation mot de passe -->
+                <div class="mb-5">
+                    <label for="{{ form.password_confirm.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.password_confirm.label }}
+                    </label>
+                    <div class="relative">
+                        {{ form.password_confirm }}
+                        <div id="match-indicator" class="hidden absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <span id="match-icon"></span>
+                        </div>
+                    </div>
+                    {% if form.password_confirm.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.password_confirm.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Case à cocher -->
+                <div class="mb-6">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        {{ form.accept_terms }}
+                        <span class="text-sm text-gray-600 leading-relaxed">
+                            J'accepte les <a href="#" class="text-blue-600 hover:text-blue-700 font-medium">conditions d'utilisation</a> et la <a href="#" class="text-blue-600 hover:text-blue-700 font-medium">politique de confidentialité</a>
+                        </span>
+                    </label>
+                    {% if form.accept_terms.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.accept_terms.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Bouton de soumission -->
+                <button type="submit" id="submit-btn" disabled class="w-full bg-gray-400 text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 cursor-not-allowed opacity-50">
+                    <span id="submit-text">S'inscrire</span>
+                    <span id="submit-loader" class="hidden">
+                        <svg class="inline w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Inscription en cours...
+                    </span>
+                </button>
+            </form>
+
+            <!-- Lien de connexion -->
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    Avez-vous déjà un compte ? 
+                    <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-700 font-medium transition-colors">Connectez-vous</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/signup.js' %}"></script>
+</body>
+</html>

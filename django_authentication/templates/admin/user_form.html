@@ -1,0 +1,325 @@
+{% load static %}
+{% load profile_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - AuthSystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .main-content {
+            margin-left: 256px;
+            min-height: 100vh;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar-component {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar-component.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    {% include 'components/sidebar.html' %}
+    
+    <!-- Bouton menu mobile -->
+    <button id="mobile-menu-btn" class="md:hidden fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-lg">
+        <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
+    
+    <!-- Contenu principal -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-20">
+            <div class="px-8 py-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">{{ page_title }}</h1>
+                        <p class="text-gray-600 mt-1">
+                            {% if is_edit %}
+                                Modifiez les informations de l'utilisateur
+                            {% else %}
+                                Créez un nouveau compte utilisateur
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <a href="{% url 'user_management' %}" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-all flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Retour à la liste
+                    </a>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Contenu -->
+        <main class="p-8">
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="mb-6 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %} fade-in">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- Formulaire -->
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 fade-in">
+                    <form method="POST" enctype="multipart/form-data" id="user-form">
+                        {% csrf_token %}
+                        
+                        <!-- Erreurs globales -->
+                        {% if form.non_field_errors %}
+                            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                {% for error in form.non_field_errors %}
+                                    <p class="text-sm text-red-600">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Section Photo de profil -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Photo de profil</h3>
+                            <div class="flex items-center gap-6">
+                                <!-- Preview -->
+                                <div class="relative">
+                                    {% if is_edit and user_to_edit|has_profile_picture %}
+                                        <img 
+                                            id="profile-preview" 
+                                            src="{% profile_picture_url user_to_edit %}" 
+                                            alt="Preview"
+                                            class="w-24 h-24 rounded-full object-cover ring-4 ring-gray-200"
+                                        >
+                                    {% else %}
+                                        <div 
+                                            id="profile-preview-initials" 
+                                            class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl ring-4 ring-gray-200"
+                                        >
+                                            {% if is_edit %}{{ user_to_edit.get_initials }}{% else %}??{% endif %}
+                                        </div>
+                                        <img 
+                                            id="profile-preview" 
+                                            src="" 
+                                            alt="Preview"
+                                            class="w-24 h-24 rounded-full object-cover ring-4 ring-gray-200 hidden"
+                                        >
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Actions -->
+                                <div class="flex-1">
+                                    {{ form.profile_picture }}
+                                    <button 
+                                        type="button"
+                                        onclick="document.getElementById('id_profile_picture').click()"
+                                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium text-sm"
+                                    >
+                                        Choisir une photo
+                                    </button>
+                                    <p class="text-xs text-gray-500 mt-2">JPG, PNG, GIF ou WEBP. Max 5MB.</p>
+                                    {% if form.profile_picture.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.profile_picture.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Section Informations personnelles -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Informations personnelles</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Nom complet -->
+                                <div class="md:col-span-2">
+                                    <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.full_name.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.full_name }}
+                                    {% if form.full_name.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="mt-1 text-xs text-gray-500">Format: Nom Prénom, Nom_Prénom ou NomPrénom</p>
+                                </div>
+                                
+                                <!-- Email -->
+                                <div>
+                                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.email.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Téléphone -->
+                                <div>
+                                    <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.phone.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Section Sécurité -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">
+                                {% if is_edit %}Modifier le mot de passe{% else %}Mot de passe{% endif %}
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Mot de passe -->
+                                <div>
+                                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.password.label }} {% if not is_edit %}<span class="text-red-500">*</span>{% endif %}
+                                    </label>
+                                    {{ form.password }}
+                                    {% if form.password.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>
+                                    {% endif %}
+                                    {% if is_edit %}
+                                        <p class="mt-1 text-xs text-gray-500">Laisser vide pour ne pas modifier</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Confirmation -->
+                                <div>
+                                    <label for="{{ form.password_confirm.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.password_confirm.label }} {% if not is_edit %}<span class="text-red-500">*</span>{% endif %}
+                                    </label>
+                                    {{ form.password_confirm }}
+                                    {% if form.password_confirm.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.password_confirm.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Section Rôle et Statut -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Rôle et statut</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Rôle -->
+                                <div>
+                                    <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.role.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.role }}
+                                    {% if form.role.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.role.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="mt-1 text-xs text-gray-500">Superuser = accès administrateur complet</p>
+                                </div>
+                                
+                                <!-- Statut actif -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Statut du compte
+                                    </label>
+                                    <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                                        {{ form.is_active }}
+                                        <label for="{{ form.is_active.id_for_label }}" class="text-sm text-gray-700 cursor-pointer">
+                                            Compte actif
+                                        </label>
+                                    </div>
+                                    {% if form.is_active.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.is_active.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Boutons d'action -->
+                        <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
+                            <a href="{% url 'user_management' %}" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-all">
+                                Annuler
+                            </a>
+                            <button type="submit" class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                {% if is_edit %}Modifier{% else %}Créer{% endif %} l'utilisateur
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Menu mobile
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.querySelector('.sidebar-component');
+        
+        if (mobileMenuBtn && sidebar) {
+            mobileMenuBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('mobile-open');
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!sidebar.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            });
+        }
+        
+        // Prévisualisation de la photo
+        const profilePictureInput = document.getElementById('id_profile_picture');
+        const profilePreview = document.getElementById('profile-preview');
+        const profilePreviewInitials = document.getElementById('profile-preview-initials');
+        
+        if (profilePictureInput) {
+            profilePictureInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        profilePreview.src = e.target.result;
+                        profilePreview.classList.remove('hidden');
+                        if (profilePreviewInitials) {
+                            profilePreviewInitials.classList.add('hidden');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+================================================================================

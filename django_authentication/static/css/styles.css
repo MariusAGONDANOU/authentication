@@ -1,0 +1,110 @@
+/* Styles de base pour les alertes SweetAlert2 personnalisées */
+.swal2-popup {
+    border-radius: 12px;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+/* Animation d'entrée personnalisée */
+@keyframes slideInDown {
+    from {
+        transform: translate3d(0, -20px, 0);
+        opacity: 0;
+    }
+    to {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+
+/* Styles pour les toasts */
+.swal2-toast {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Personnalisation des boutons */
+.swal2-confirm {
+    border-radius: 6px;
+    padding: 8px 24px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.swal2-cancel {
+    border-radius: 6px;
+    padding: 8px 24px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+/* Effet de survol sur les boutons */
+.swal2-confirm:not([disabled]):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.swal2-cancel:not([disabled]):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Personnalisation des icônes */
+.swal2-icon {
+    margin: 1.5em auto 1em;
+}
+
+/* Animation pour les icônes */
+.swal2-animate-success-icon {
+    animation: swal2-animate-success-icon 0.8s ease-in-out;
+}
+
+.swal2-animate-error-icon {
+    animation: swal2-animate-error-icon 0.5s ease-in-out;
+}
+
+/* Styles pour les champs de saisie */
+.swal2-input,
+.swal2-textarea {
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.swal2-input:focus,
+.swal2-textarea:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+/* Personnalisation du pied de page */
+.swal2-footer {
+    border-top: 1px solid #eee;
+    padding-top: 1em;
+    margin-top: 1em;
+    color: #666;
+}
+
+/* Animation de chargement */
+.swal2-loading {
+    border-color: #4a90e2 transparent #4a90e2 #4a90e2 !important;
+}
+
+/* Personnalisation responsive */
+@media (max-width: 600px) {
+    .swal2-popup {
+        width: 90%;
+        margin: 1em auto;
+    }
+    
+    .swal2-actions {
+        flex-direction: column;
+    }
+    
+    .swal2-confirm,
+    .swal2-cancel {
+        width: 100%;
+        margin: 5px 0;
+    }
+}

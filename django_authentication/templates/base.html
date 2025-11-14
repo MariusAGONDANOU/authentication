@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mon Application{% endblock %}</title>
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- Vos styles CSS personnalisés -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% include 'components/header.html' %}
+    
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% include 'components/footer.html' %}
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Messages Django vers SweetAlert2 -->
+    {% if messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for message in messages %}
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+            
+            Toast.fire({
+                icon: '{{ message.tags }}', // success, error, warning, info, question
+                title: '{{ message|escapejs }}'
+            });
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+    
+    <!-- Script pour les confirmations -->
+    <script>
+        // Fonction pour les confirmations personnalisées
+        function showConfirm(options, callback) {
+            Swal.fire({
+                title: options.title || 'Êtes-vous sûr ?',
+                text: options.text || 'Cette action est irréversible',
+                icon: options.icon || 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: options.confirmText || 'Oui, continuer',
+                cancelButtonText: options.cancelText || 'Annuler',
+                backdrop: 'rgba(0,0,0,0.4)',
+                allowOutsideClick: false,
+                customClass: {
+                    popup: 'animated fadeInDown faster'
+                },
+                showClass: {
+                    popup: 'animate__animated animate__fadeInDown animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp animate__faster'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                }
+            });
+        }
+        
+        // Surcharge de la fonction confirm native
+        window.originalConfirm = window.confirm;
+        window.confirm = function(message) {
+            return new Promise((resolve) => {
+                Swal.fire({
+                    title: 'Confirmation',
+                    text: message,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Oui',
+                    cancelButtonText: 'Annuler',
+                    reverseButtons: true
+                }).then((result) => {
+                    resolve(result.isConfirmed);
+                });
+            });
+        };
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
