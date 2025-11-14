@@ -1,6 +1,6 @@
 # Système d'Authentification Django
 
-Un système d'authentification complet construit avec Django, offrant des fonctionnalités d'inscription, de connexion, de réinitialisation de mot de passe et de gestion de profil utilisateur.
+Un système d'authentification complet construit avec Django, offrant des fonctionnalités d'inscription, de connexion, de réinitialisation de mot de passe, de gestion de profil utilisateur et de gestion complète des utilisateurs et des rôles côté administrateur.
 
 ## 📋 Fonctionnalités
 
@@ -108,8 +108,8 @@ Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou un
 
 Distribué sous la licence MIT. Voir `LICENSE` pour plus d'informations.
 
-## 📧 Contact
+## 📧 Contacts
 
-Marius AGONDANOU - [@votre_handle_twitter](https://twitter.com/votre_handle) - email@example.com
+Marius AGONDANOU - E-mail : agondanoumarius3@gmail.com - Téléphone : +229 0168532046
 
 Lien du projet : [https://github.com/MariusAGONDANOU/authentication](https://github.com/MariusAGONDANOU/authentication)
